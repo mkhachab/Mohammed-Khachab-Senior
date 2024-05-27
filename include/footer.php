@@ -13,10 +13,10 @@
   
       <!-- Right -->
       <div>
-       
-        <a href="https://www.instagram.com/town32.tyre/" target="_blank" class="ml-4 text-reset">
+        <a href="https://instagram.com/town32.tyre" target=:"_blank" class="ml-4 text-reset">
           <i class="fab fa-instagram"></i>
         </a>
+        
         <a href="mailto:info@town32.com" target=:"_blank" class="ml-4 text-reset">
   <i class="far fa-envelope"></i>
 </a>
@@ -35,16 +35,33 @@
           <div class="col-md-3 col-lg-4 col-xl-3 mx-auto mb-4">
             <!-- Content -->
             <h6 class="text-uppercase fw-bold mb-4">
-             Town32 
+             <?php echo $general_setting['Name'] ?>
             </h6>
             <p>
-                Whether you book a hotel online, on the phone, or through a travel agent, it should be a simple process.
-                 It should be easy to contact a knowledgeable, helpful person
-                 
+              <!-- Description  -->
+               <?php echo $general_setting['Description'] ?>
             </p>
           </div>
           <!-- Grid column -->
   
+          <!-- Grid column -->
+          <div class="col-md-2 col-lg-2 col-xl-2 mx-auto mb-4">
+            <!-- Links -->
+            <h6 class="text-uppercase fw-bold mb-4">
+              Useful Links
+            </h6>
+            <p>
+              <a href="#!" class="text-reset">Terms & Conditions</a>
+            </p>
+            <p>
+              <a href="#!" class="text-reset">Privacy and Policy</a>
+            </p>
+            <p>
+              <a href="client/room.php" class="text-reset">Rooms</a>
+            </p>
+            
+          </div>
+          <!-- Grid column -->
   
           <!-- Grid column -->
           <div class="col-md-3 col-lg-2 col-xl-2 mx-auto mb-4">
@@ -52,13 +69,13 @@
             <h6 class="text-uppercase fw-bold mb-4">
               Quick links
             </h6>
-         
-
+           
+            
             <p>
-              <a href="../gallery.php" class="text-reset">Gallery</a>
+              <a href="gallery.php" class="text-reset">Gallery</a>
             </p>
             <p>
-              <a href="../contact.php" class="text-reset">Contact us</a>
+              <a href="contact.php" class="text-reset">Contact us</a>
             </p>
           </div>
           <!-- Grid column -->
@@ -69,13 +86,17 @@
             <h6 class="text-uppercase fw-bold mb-4">
               Contact
             </h6>
-            <p><i class="fas fa-home me-3"></i>Tyre, South Lebanon</p>
+            <p><i class="fas fa-home me-3"></i><?php echo $general_setting['Address_line1'] ?>,
+
+             <?php echo $general_setting['State'] ?></p>
+             <p>Country :<?php echo $general_setting['Country'] ?>,</p>
+            
             <p>
               <i class="fas fa-envelope me-3"></i>
-             Town32@gmail.com
+              <?php echo $general_setting['Email'] ?>
             </p>
-            <p><i class="fas fa-phone me-3"></i> +961 81 682 782</p>
-            <p><i class="fas fa-phone me-3"></i> +961 07 741 031</p>
+            <p><i class="fas fa-phone me-3"></i>     <?php echo $general_setting['Phone_number'] ?> </p>
+            <p><i class="fas fa-phone me-3"></i>     <?php echo $general_setting['Telephone_number'] ?> </p>
           </div>
           <!-- Grid column -->
         </div>
@@ -84,18 +105,16 @@
     </section>
     <!-- Section: Links  -->
   
-   
-   
+    
+    <!-- Copyright -->
   </footer>
   <!-- Footer -->
   </section>
      
 
-<script  src="../assets/js/index.js"></script>
+<script  src="assets/js/index.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
-<!-- Jquery Time picker  -->
-
-<script src="//cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.js"></script>
 
      </body>
 </html>
