@@ -2,15 +2,12 @@
 
 include("../include/functions.php");
 
-
-// Room 
-
 if(isset($_POST['paymentType'])){
     $bookingID = $_POST['bookingId'];
     $Type = $_POST['paymentType'];
     $query_updateStatus = "UPDATE room_booking SET Status='Paid' where BookingId= '$bookingID'";
 
-
+    
     $query_fetchRoomId = "SELECT * from room_booking where BookingId= $bookingID ";
     $result = mysqli_query($con,$query_fetchRoomId);
     $row = mysqli_fetch_assoc($result);
@@ -37,11 +34,11 @@ if(isset($_POST['paymentType'])){
     echo json_encode($sendData);
 }
 
-if(isset($_POST['roomBookingRejected'])){
+// room booking 
+if(isset($_POST['roomBookingCancel'])){
     $bookingID = $_POST['bookingId'];
-    $query_updateStatus = "UPDATE room_booking SET Status='Rejected' where BookingId= '$bookingID'";
+    $query_updateStatus = "UPDATE room_booking SET Status='Cancelled' where BookingId= '$bookingID'";
 
-    
     $query_fetchRoomId = "SELECT RoomId from room_booking where BookingId= $bookingID ";
     $result = mysqli_query($con,$query_fetchRoomId);
     $row = mysqli_fetch_assoc($result);
@@ -50,7 +47,7 @@ if(isset($_POST['roomBookingRejected'])){
 
     $sendData = array();
     if(mysqli_query($con,$query_updateStatus)  &&  mysqli_query($con,$query_updateAvail) ){
-        $error = "The Booking Was Rejected";
+        $error = "Your Booking Was Cancelled";
         $sendData = array(
             "msg"=>"",
             "error"=>$error
@@ -68,36 +65,8 @@ if(isset($_POST['roomBookingRejected'])){
     echo json_encode($sendData);
 }
 
-if(isset($_POST['roomBookingCheckedOut'])){
-    $bookingID = $_POST['bookingId'];
-    $query_updateStatus = "UPDATE room_booking SET Status='CheckedOut' where BookingId= '$bookingID'";
-
-    $query_fetchRoomId = "SELECT RoomId from room_booking where BookingId= $bookingID ";
-    $result = mysqli_query($con,$query_fetchRoomId);
-    $row = mysqli_fetch_assoc($result);
-    $query_updateAvail = "UPDATE room_list SET Booking_status='Available' where RoomId= '".$row["RoomId"]."'";
-
-
-    $sendData = array();
-    if(mysqli_query($con,$query_updateStatus)  &&  mysqli_query($con,$query_updateAvail) ){
-        $msg = "The Room is Available Now !";
-        $sendData = array(
-            "msg"=>$msg,
-            "error"=>""
-        );
-       
-    }else{
-        $error = "Oh no ! Your Action is Failed , Try After sometimes";
-        $sendData = array(
-            "msg"=>"",
-            "error"=>$error
-        );
-      
-    }
-    
-    echo json_encode($sendData);
-}
 // Event 
+
 
 if(isset($_POST['eventPaymentType'])){
     $bookingID = $_POST['eventBookingId'];
@@ -105,8 +74,8 @@ if(isset($_POST['eventPaymentType'])){
     $query_updateStatus = "UPDATE event_booking SET Status='Paid' where BookingId= '$bookingID'";
 
   
-    $query_fetchEventId = "SELECT * from event_booking where BookingId= $bookingID ";
-    $result = mysqli_query($con,$query_fetchEventId);
+    $query_fetchRoomId = "SELECT * from event_booking where BookingId= $bookingID ";
+    $result = mysqli_query($con,$query_fetchRoomId);
     $row = mysqli_fetch_assoc($result);
 
     $query_insert = "INSERT INTO event_payment(BookingId,PaymentType,PaymentDate,Amount) values('$bookingID','$Type',CURDATE(),".$row['Amount'].")";
@@ -131,9 +100,11 @@ if(isset($_POST['eventPaymentType'])){
     echo json_encode($sendData);
 }
 
-if(isset($_POST['eventBookingRejected'])){
+
+
+if(isset($_POST['eventBookingCancel'])){
     $bookingID = $_POST['bookingId'];
-    $query_updateStatus = "UPDATE event_booking SET Status='Rejected' where BookingId= '$bookingID'";
+    $query_updateStatus = "UPDATE event_booking SET Status='Cancelled' where BookingId= '$bookingID'";
 
     
     $query_fetchEventId = "SELECT EventId from event_booking where BookingId= $bookingID ";
@@ -144,7 +115,7 @@ if(isset($_POST['eventBookingRejected'])){
 
     $sendData = array();
     if(mysqli_query($con,$query_updateStatus)  &&  mysqli_query($con,$query_updateAvail) ){
-        $error = "The Booking Was Rejected";
+        $error = "Your Booking Was Cancelled";
         $sendData = array(
             "msg"=>"",
             "error"=>$error
@@ -158,38 +129,7 @@ if(isset($_POST['eventBookingRejected'])){
         );
       
     }
-    
     echo json_encode($sendData);
 }
 
-if(isset($_POST['eventBookingCheckedOut'])){
-    $bookingID = $_POST['bookingId'];
-    $query_updateStatus = "UPDATE event_booking SET Status='CheckedOut' where BookingId= '$bookingID'";
-
-
-    $query_fetchEventId = "SELECT EventId from event_booking where BookingId= $bookingID ";
-    $result = mysqli_query($con,$query_fetchEventId);
-    $row = mysqli_fetch_assoc($result);
-    $query_updateAvail = "UPDATE event_list SET Booking_status='Available' where EventId= '".$row["EventId"]."'";
-
-
-    $sendData = array();
-    if(mysqli_query($con,$query_updateStatus)  &&  mysqli_query($con,$query_updateAvail) ){
-        $msg = "The Hall is Available Now !";
-        $sendData = array(
-            "msg"=>$msg,
-            "error"=>""
-        );
-       
-    }else{
-        $error = "Oh no ! Your Action is Failed , Try After sometimes";
-        $sendData = array(
-            "msg"=>"",
-            "error"=>$error
-        );
-      
-    }
-    
-    echo json_encode($sendData);
-}
 ?>

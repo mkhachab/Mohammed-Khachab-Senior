@@ -1,1163 +1,647 @@
+<style>
+    /* The Modal (background) */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1;
+  padding-top: 60px;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgb(0,0,0);
+  background-color: rgba(0,0,0,0.9);
+}
+
+/* Modal Content (image) */
+.modal-content {
+  margin: auto;
+  display: block;
+  width: 80%;
+  max-width: 700px;
+}
+
+/* Caption of Modal Image */
+#caption {
+  margin: auto;
+  display: block;
+  width: 80%;
+  max-width: 700px;
+  text-align: center;
+  color: #ccc;
+  padding: 10px 0;
+  height: 150px;
+}
+
+/* Add Animation */
+.modal-content, #caption {  
+  -webkit-animation-name: zoom;
+  -webkit-animation-duration: 0.6s;
+  animation-name: zoom;
+  animation-duration: 0.6s;
+}
+
+@-webkit-keyframes zoom {
+  from {-webkit-transform:scale(0)} 
+  to {-webkit-transform:scale(1)}
+}
+
+@keyframes zoom {
+  from {transform:scale(0)} 
+  to {transform:scale(1)}
+}
+
+/* The Close Button */
+.close {
+  position: absolute;
+  top: 15px;
+  right: 35px;
+  color: #f1f1f1;
+  font-size: 40px;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+.close:hover,
+.close:focus {
+  color: #bbb;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* Next & previous buttons */
+.prev, .next {
+  cursor: pointer;
+  position: absolute;
+  top: 50%;
+  width: auto;
+  padding: 16px;
+  margin-top: -22px;
+  color: white;
+  font-weight: bold;
+  font-size: 20px;
+  transition: 0.6s ease;
+  border-radius: 0 3px 3px 0;
+  user-select: none;
+}
+
+.next {
+  right: 0;
+  border-radius: 3px 0 0 3px;
+}
+
+.prev {
+  left: 0;
+  border-radius: 3px 0 0 3px;
+}
+
+.prev:hover, .next:hover {
+  background-color: rgba(0,0,0,0.8);
+}
+
+</style>
+<script>
+let modal;
+let modalImg;
+let images = [];
+let currentIndex = 0;
+
+function openModal(element) {
+  images = [element.getAttribute('data-image'), element.getAttribute('data-image1'), element.getAttribute('data-image2')];
+  currentIndex = 0;
+  modal = document.getElementById("myModal");
+  modalImg = document.getElementById("modalImage");
+  modal.style.display = "block";
+  modalImg.src = images[currentIndex];
+}
+
+function closeModal() {
+  modal.style.display = "none";
+}
+
+function nextImage() {
+  currentIndex = (currentIndex + 1) % images.length;
+  modalImg.src = images[currentIndex];
+}
+
+function prevImage() {
+  currentIndex = (currentIndex - 1 + images.length) % images.length;
+  modalImg.src = images[currentIndex];
+}
+
+window.onclick = function(event) {
+  if (event.target == modal) {
+    modal.style.display = "none";
+  }
+}
+</script>
+<!-- The Modal -->
+<div id="myModal" class="modal">
+  <span class="close" onclick="closeModal()">&times;</span>
+  <img class="modal-content" id="modalImage">
+  <a class="prev" onclick="prevImage()">&#10094;</a>
+  <a class="next" onclick="nextImage()">&#10095;</a>
+</div>
+
 <?php
-
-//---------------------------------------------- User table -----------------------------------------
-
-include("../include/dbConnect.php");
-if(isset($_POST['userFilter'])){
-
-  $userTable='<br><br>';
-    if(isset($_POST['msg'])){ 
-            $userTable.='<div class="alert alert-success" role="alert">' . $_POST["msg"].' </div>';
-          }
-      if (isset($_POST["error"])) {
-        $userTable.='<div class="alert alert-danger">' . $_POST["error"] . '</div>';
-      }
-       
-
-        $userTable.='<div class="table-responsive">
-        <table class="table table-hover " id="userTable">
-<thead class="thead-dark">
-    <tr >
-      <th scope="col">Profile</th>
-      <th scope="col">First name</th>
-      <th scope="col">Last name</th>
-      <th scope="col">Gender</th>
-      <th scope="col">Email</th>
-      <th scope="col">Contact no</th>
-      <th scope="col">Status</th>
-      <th scope="col">Action</th>
-      
-    </tr>
-  </thead>
-  <tbody>';
-    
-
-   
-    $userFilter = $_POST['userFilter'];
-   if($userFilter==""){
-    $selectAllUser = "SELECT * FROM users_details where FirstName <> 'admin' ";
-   }else{
-    $selectAllUser = "SELECT * FROM users_details WHERE Status like '".$userFilter."' AND FirstName <> 'admin' ";
-   }
-   
-    $allUser = mysqli_query($con,$selectAllUser);
-    $noOfUsers = mysqli_num_rows($allUser);
-
-    if($noOfUsers>=1){
-        while($row=mysqli_fetch_assoc($allUser))
-        {
-           
-          $userTable.=' <tr>
-                    <td><a href="../assets/picture/profiles/'.$row["ProfileImage"].'" > 
-                    <img class="round-img" src="../assets/picture/profiles/'.$row["ProfileImage"].'" alt="Profile"/>
-                    </a>
-                    </td>
-                    <td>'.$row["FirstName"].'</td>
-                    <td>'.$row["LastName"].'</td>
-                    <td>'.$row["Gender"].'</td>
-                    <td>'.$row["Email"].'</td>
-                    <td>'.$row["ContactNo"].'</td>
-                    <td>'.$row["Status"].'</td>
-                    <td>
-                       
-              <input type="hidden" name="userId" value="'.$row["UserId"].'"/> ';
-              $userTable.="<button class='btn btn-secondary'  name='EditUser' onclick=\" editUser('".$row["UserId"]."') \"> Edit </button>";
-              $userTable.="<button class='btn btn-danger' name='deleteUser' onclick=\"confirm('Are you want to delete  ".$row["FirstName"]."') && deleteUser('".$row["UserId"]."')\">Delete</button>
-                     
-                    </td>
-            </tr>";
-        }
-      }
-    else 
-    {
-    
-      $userTable.='<tr><td colspan="8" style="color:red;text-align:center;">No records are found </td></tr>';
-    
-    }
-
-    $userTable.='</tbody>
-    </table></div>';
-  echo $userTable;
-  }
-
-
-  //----------------------------------------------  Gallery Action -----------------------------------------
- if(isset($_POST['galleryFilter'])){
-  
-  $dirname = "../assets/picture/gallery/";
-  $images = glob($dirname."*.*");
-  $returnData ='' ;
-  if(isset($_POST['msg'])){ 
-    $returnData.='<div class="col-12 alert alert-success" role="alert">' . $_POST["msg"].' </div>';
-  }
-if (isset($_POST["error"])) {
-$returnData.='<div class="col-12 alert alert-danger">' . $_POST["error"] . '</div>';
-}
-  foreach($images as $image) {
-    $returnData.=' <div class="col-sm-6 col-md-4 col-lg-3 item">
-              <div class="hovereffect">
-              <img class="img-responsive img-fluid gallery-images img-thumbnail" src="'.$image.'" alt="">
-              <div class="overlay">';
-              $returnData.="    <a class='info' href='#'  onclick=\"confirm('Are you want to delete this image') && deleteImage('".$image."')\">Delete</a>
-              </div>
-              </div>
-          </div>";
-
-  
-  }
-  
-  echo $returnData;
-
- }
-
-   //---------------------------------------------- Room Type table -----------------------------------------
-
-   if(isset($_POST['roomTypeFilter'])){
-
-    $typeTable='<br><br>';
-
-    if(isset($_POST['msg'])){ 
-            $typeTable.='<div class="alert alert-success" role="alert">' . $_POST["msg"].' </div>';
-          }
-      if (isset($_POST["error"])) {
-        $typeTable.='<div class="alert alert-danger">' . $_POST["error"] . '</div>';
-      }
-       
-
-        $typeTable.='<div class="table-responsive">
-        <table class="table table-hover " id="userTable">
-<thead class="thead-dark">
-    <tr >
-      <th scope="col">Image</th>
-      <th scope="col">Type Name</th>
-      <th scope="col">Cost</th>
-      <th scope="col">Description</th>
-      <th scope="col">Status</th>
-      <th scope="col">Action</th>
-     
-      
-    </tr>
-  </thead>
-  <tbody>';
-    
-
-   
-    $roomTypeFilter = $_POST['roomTypeFilter'];
-
-
-   switch($roomTypeFilter){
-      case 1:  $selectAllType = "SELECT * FROM room_type "; break;
-      case 2:  $selectAllType = "SELECT * FROM room_type WHERE Status like 'active' ";break;
-      case 3:  $selectAllType = "SELECT * FROM room_type WHERE Status like 'in-active' ";break;
-      case 4:  $selectAllType = "SELECT * FROM room_type WHERE Cost < 50 ";break;
-      case 5:  $selectAllType = "SELECT * FROM room_type WHERE Cost >=50 AND Cost<=100 ";break;
-      case 6:  $selectAllType = "SELECT * FROM room_type WHERE Cost >100 ";break;
-      default: $selectAllType = "SELECT * FROM room_type "; break;
-      
-   }
-
-    $allType = mysqli_query($con,$selectAllType);
-    $noOfType = mysqli_num_rows($allType);
-
-    if($noOfType>=1){
-        while($row=mysqli_fetch_assoc($allType))
-        {
-           
-          $typeTable.=' <tr>
-                    <td><a href="../assets/picture/RoomType/'.$row["RoomImage"].'" > 
-                    <img class="round-img" src="../assets/picture/RoomType/'.$row["RoomImage"].'" alt="Profile"/>
-                    </a>
-                    </td>
-                    <td>'.$row["RoomType"].'</td>
-                    <td>'.$row["Cost"].'</td>
-                    <td>'.$row["Description"].'</td>
-                    <td>'.$row["Status"].'</td>
-                   
-                    <td>
-                       
-              <input type="hidden" name="userId" value="'.$row["RoomTypeId"].'"/> ';
-              $typeTable.="<button class='btn btn-secondary'  name='EditUser' onclick=\" editRoomType('".$row["RoomTypeId"]."') \"> Edit </button>";
-              $typeTable.="<button class='btn btn-danger' name='deleteUser' onclick=\"confirm('Are you want to delete  ".$row["RoomType"]."') && deleteRoomType('".$row["RoomTypeId"]."')\">Delete</button>
-                     
-                    </td>
-            </tr>";
-        }
-      }
-    else 
-    {
-    
-      $typeTable.='<tr><td colspan="8" style="color:red;text-align:center;">No records are found </td></tr>';
-    
-    }
-
-    $typeTable.='</tbody>
-    </table></div>';
-
-  echo $typeTable;
-
-   } 
-
-   //---------------------------------------------- Room List table -----------------------------------------
-
-   if(isset($_POST['roomFilter'])){
-    $roomTable='<br><br>';
-    if(isset($_POST['msg'])){ 
-            $roomTable.='<div class="alert alert-success" role="alert">' . $_POST["msg"].' </div>';
-          }
-      if (isset($_POST["error"])) {
-        $roomTable.='<div class="alert alert-danger">' . $_POST["error"] . '</div>';
-      }
-       
-
-        $roomTable.='<div class="table-responsive">
-        <table class="table table-hover " id="userTable">
-<thead class="thead-dark">
-    <tr >
-      <th scope="col">Room Type</th>
-      <th scope="col">Cost</th>
-      <th scope="col">Room Number</th>
-      <th scope="col">Status</th>
-      <th scope="col">Action</th>
-      
-    </tr>
-  </thead>
-  <tbody>';
-    
-
-   
-    $roomFilter = $_POST['roomFilter'];
-   if($roomFilter==""){
-    $selectAllRoom = "SELECT rl.RoomId,rt.RoomType,rt.Cost,rl.RoomNumber,rl.Status FROM room_list rl inner join room_type rt on  rl.RoomTypeId = rt.RoomTypeId";
-   }else{
-    $selectAllRoom = "SELECT rl.RoomId,rt.RoomType,rt.Cost,rl.RoomNumber,rl.Status FROM room_list rl  inner join room_type rt on  rl.RoomTypeId = rt.RoomTypeId WHERE rl.Status like '".$roomFilter."' ";
-    
-   }
-
-   
-    $allRoom = mysqli_query($con,$selectAllRoom);
-    $noOfrooms = mysqli_num_rows($allRoom);
-
-    if($noOfrooms>=1){
-        while($row=mysqli_fetch_assoc($allRoom))
-        {
-           
-          $roomTable.=' <tr>
-                    
-                    <td>'.$row["RoomType"].'</td>
-                    <td>'.$row["Cost"].'</td>
-                    <td>'.$row["RoomNumber"].'</td>
-                    <td>'.$row["Status"].'</td>
-                   
-                    <td>
-                       
-              <input type="hidden" name="userId" value="'.$row["RoomId"].'"/> ';
-              $roomTable.="<button class='btn btn-secondary'  name='EditUser' onclick=\" editRoom('".$row["RoomId"]."') \"> Edit </button>";
-              $roomTable.="<button class='btn btn-danger' name='deleteUser' onclick=\"confirm('Are you want to delete the room number  ".$row["RoomNumber"]."') && deleteRoom('".$row["RoomId"]."')\">Delete</button>
-                     
-                    </td>
-            </tr>";
-        }
-      }
-    else 
-    {
-    
-      $roomTable.='<tr><td colspan="8" style="color:red;text-align:center;">No records are found </td></tr>';
-    
-    }
-
-    $roomTable.='</tbody>
-    </table></div>';
-  echo $roomTable;
-   } 
-   
-   
-   //---------------------------------------------- Room Booking table -----------------------------------------
-
-   if(isset($_POST['roomBooking'])){
-
-    $roomTable='<br><br>';
-    if(isset($_POST['msg'])){ 
-            $roomTable.='<div class="alert alert-success" role="alert">' . $_POST["msg"].' </div>';
-          }
-      if (isset($_POST["error"])) {
-        $roomTable.='<div class="alert alert-danger">' . $_POST["error"] . '</div>';
-      }
-       
-
-        $roomTable.='<div class="table-responsive">
-        <table class="table table-hover " id="userTable">
-<thead class="thead-dark">
-    <tr >
-      <th scope="col">User</th>
-      <th scope="col">Date</th>
-      <th scope="col">Room Type</th>
-      <th scope="col">Room No</th>
-      <th scope="col">CheckIn</th>
-      <th scope="col">CheckOut</th>
-      <th scope="col">Amount</th>
-      <th scope="col">Status</th>
-      <th scope="col">Action</th>
-      <th scope="col">Details</th>
-      
-    </tr>
-  </thead>
-  <tbody>';
-    
-  $filter = $_POST['filter'];
-
-  switch($filter){
-    case 1:  $selectBooking =  "SELECT rm.*,rt.RoomType,rl.RoomNumber,us.FirstName FROM room_booking rm 
-                                inner join room_list rl on rl.RoomId = rm.RoomId
-                                inner join room_type rt on rl.RoomTypeId = rt.RoomTypeId 
-                                inner join users_details us on us.Userid = rm.User_id 
-                                order by rm.Date desc";
-                                break;
-
-    case 2:  $selectBooking =  "SELECT rm.*,rt.RoomType,rl.RoomNumber,us.FirstName FROM room_booking rm 
-                                inner join room_list rl on rl.RoomId = rm.RoomId
-                                inner join room_type rt on rl.RoomTypeId = rt.RoomTypeId 
-                                inner join users_details us on us.Userid = rm.User_id 
-                                where rm.Status = 'Booked'
-                                order by rm.Date desc";
-                                break;
-
-    case 3:  $selectBooking =  "SELECT rm.*,rt.RoomType,rl.RoomNumber,us.FirstName FROM room_booking rm 
-                                inner join room_list rl on rl.RoomId = rm.RoomId
-                                inner join room_type rt on rl.RoomTypeId = rt.RoomTypeId 
-                                inner join users_details us on us.Userid = rm.User_id 
-                                where rm.Status = 'Paid'
-                                order by rm.Date desc";
-                                break;
-
-
-    case 4:  $selectBooking =  "SELECT rm.*,rt.RoomType,rl.RoomNumber,us.FirstName FROM room_booking rm 
-                                inner join room_list rl on rl.RoomId = rm.RoomId
-                                inner join room_type rt on rl.RoomTypeId = rt.RoomTypeId 
-                                inner join users_details us on us.Userid = rm.User_id 
-                                where rm.Status = 'Cancelled'
-                                order by rm.Date desc";
-                                break;
-
-    case 5:  $selectBooking =  "SELECT rm.*,rt.RoomType,rl.RoomNumber,us.FirstName FROM room_booking rm 
-                                inner join room_list rl on rl.RoomId = rm.RoomId
-                                inner join room_type rt on rl.RoomTypeId = rt.RoomTypeId 
-                                inner join users_details us on us.Userid = rm.User_id 
-                                where rm.Status = 'Rejected'
-                                order by rm.Date desc";
-                                break;
-
-    case 6:  $selectBooking =  "SELECT rm.*,rt.RoomType,rl.RoomNumber,us.FirstName FROM room_booking rm 
-                                inner join room_list rl on rl.RoomId = rm.RoomId
-                                inner join room_type rt on rl.RoomTypeId = rt.RoomTypeId 
-                                inner join users_details us on us.Userid = rm.User_id 
-                                where rm.Checkout < CURDATE() AND  rm.Status = 'Paid'
-                                order by rm.Date desc";
-                                break;
-
-    case 7:  $selectBooking =  "SELECT rm.*,rt.RoomType,rl.RoomNumber,us.FirstName FROM room_booking rm 
-                                inner join room_list rl on rl.RoomId = rm.RoomId
-                                inner join room_type rt on rl.RoomTypeId = rt.RoomTypeId 
-                                inner join users_details us on us.Userid = rm.User_id 
-                                where  rm.Status = 'CheckedOut'
-                                order by rm.Date desc";
-                                break;
-
-    default: $selectBooking =  "SELECT rm.*,rt.RoomType,rl.RoomNumber,us.FirstName FROM room_booking rm 
-                                inner join room_list rl on rl.RoomId = rm.RoomId
-                                inner join room_type rt on rl.RoomTypeId = rt.RoomTypeId 
-                                inner join users_details us on us.Userid = rm.User_id 
-                                order by rm.Date desc";
-                                break;
-    
- }
-
-   $booking = mysqli_query($con,$selectBooking);
-   $noOfBooking = mysqli_num_rows($booking);
-
-   if($noOfBooking>=1){
-       while($row=mysqli_fetch_assoc($booking))
-       {
-          
-         $roomTable.=' <tr>
-                   
-                   <td>'.$row["FirstName"].'</td>
-                   <td>'.$row["Date"].'</td>
-                   <td>'.$row["RoomType"].'</td>
-                   <td>'.$row["RoomNumber"].'</td>
-                   <td>'.$row["CheckIn"].'</td>
-                   <td>'.$row["CheckOut"].'</td>
-                   <td>'.$row["Amount"].'</td>
-                   <td>'.$row["Status"].'</td>
-                   
-               ';
-
-                          if($row['Status']=="Booked"){
-                          $roomTable .=' <td>
-                          <a href="#" class="btn btn-primary btn-sm" onclick="setPaid(\''.$row["BookingId"].'\')">Pay</a>
-                          <a href="#" class="btn btn-danger btn-sm" onclick="confirm(\'Are you sure ? Do you want to Cancel this Booking \') && setReject(\''.$row["BookingId"].'\')">Cancel</a>
-                         
-                          </td>	 ';
-                          }
-                          else if ($row['Status']=="Paid"){
-                              $roomTable .='<td><form action="../include/pdf.php" method="POST" >
-                              <input type="hidden" value="'.$row['BookingId'].'"  name="bookingId" />
-                              <button type="submit" class="btn btn-primary btn-sm">Bill</button>
-                              </form>
-                              <button class="btn btn-secondary btn-sm" onclick="confirm(\'Are you sure ? Do you want to make available this room \') && setFree(\''.$row["BookingId"].'\')">Free</button>
-                            
-                              </td> 	 ';
-                          }
-                          else if ($row['Status']=="Cancelled"){
-                              $roomTable .='       <td>
-                              
-                              <span>Cancalled by Client</span>
-                              </td>	';
-                          } 
-                          else if ($row['Status']=="Rejected"){
-                              $roomTable .='         <td>
-                              
-                              <span>Cancalled by Admin</span>
-                              </td>	';
-                          }
-                          else{
-                              $roomTable .='<td><form action="../include/pdf.php" method="POST" >
-                              <input type="hidden" value="'.$row['BookingId'].'"  name="bookingId" />
-                              <button type="submit" class="btn btn-primary btn-sm">Bill</button>
-                            
-                              </td></form> 	 ';
-                          }
-                            
-                   $roomTable.='  <td><button class="btn btn-light btn-sm"  name="showDetails" onclick=" showDetails(\''.$row["BookingId"].'\') "> View </button></td> </tr>';
-       }
-     }
-   else 
-   {
-   
-     $roomTable.='<tr><td colspan="12" style="color:red;text-align:center;">No records are found </td></tr>';
-   
-   }
-
-    $roomTable.='</tbody>
-                 </table></div>';
-    
-    echo $roomTable;
-
-   } 
-
-  //  -----------------------------------------  Room Payment ------------------------------------
-
-  if(isset($_POST['roomPayment'])){
-     
-    $paymentTable='<br><br>';
-    if(isset($_POST['msg'])){ 
-            $paymentTable.='<div class="alert alert-success" role="alert">' . $_POST["msg"].' </div>';
-          }
-      if (isset($_POST["error"])) {
-        $paymentTable.='<div class="alert alert-danger">' . $_POST["error"] . '</div>';
-      }
-       
-
-        $paymentTable.='<div class="table-responsive">
-        <table class="table table-hover " id="userTable">
-<thead class="thead-dark">
-    <tr >
-      <th scope="col">User</th>
-      <th scope="col">Payment Date</th>
-      <th scope="col">Payment Type</th>
-      <th scope="col">Amount</th>
-      <th scope="col">Room Type</th>
-      <th scope="col">Room No</th>
-      <th scope="col">CheckIn</th>
-      <th scope="col">CheckOut</th>
-      
-    </tr>
-  </thead>
-  <tbody>';
-    
-  $filter = $_POST['filter'];
-
-  switch($filter){
-    case 1:  $selectPayments =  "SELECT rp.*,rm.*,rt.RoomType,rl.RoomNumber,us.FirstName FROM room_payment rp
-                                inner join room_booking rm on rp.BookingId = rm.BookingId
-                                inner join room_list rl on rl.RoomId = rm.RoomId
-                                inner join room_type rt on rl.RoomTypeId = rt.RoomTypeId 
-                                inner join users_details us on us.Userid = rm.User_id 
-                                order by rp.PaymentDate desc";
-                                break;
-
-    case 2:  $selectPayments =   "SELECT rp.*,rm.*,rt.RoomType,rl.RoomNumber,us.FirstName FROM room_payment rp
-                                  inner join room_booking rm on rp.BookingId = rm.BookingId
-                                  inner join room_list rl on rl.RoomId = rm.RoomId
-                                  inner join room_type rt on rl.RoomTypeId = rt.RoomTypeId 
-                                  inner join users_details us on us.Userid = rm.User_id 
-                                  where rp.PaymentType = 'Cash'
-                                  order by rp.PaymentDate desc";
-                                  break;
-
-    case 3:  $selectPayments =   "SELECT rp.*,rm.*,rt.RoomType,rl.RoomNumber,us.FirstName FROM room_payment rp
-                                  inner join room_booking rm on rp.BookingId = rm.BookingId
-                                  inner join room_list rl on rl.RoomId = rm.RoomId
-                                  inner join room_type rt on rl.RoomTypeId = rt.RoomTypeId 
-                                  inner join users_details us on us.Userid = rm.User_id 
-                                  where rp.PaymentType = 'Credit Card'
-                                  order by rp.PaymentDate desc";
-                                  break;
-
-    case 4:  $selectPayments =  "SELECT rp.*,rm.*,rt.RoomType,rl.RoomNumber,us.FirstName FROM room_payment rp
-                                  inner join room_booking rm on rp.BookingId = rm.BookingId
-                                  inner join room_list rl on rl.RoomId = rm.RoomId
-                                  inner join room_type rt on rl.RoomTypeId = rt.RoomTypeId 
-                                  inner join users_details us on us.Userid = rm.User_id 
-                                  where rp.PaymentType = 'Debit Card'
-                                  order by rp.PaymentDate desc";
-                                  break;
-
-    case 5:  $selectPayments =   "SELECT rp.*,rm.*,rt.RoomType,rl.RoomNumber,us.FirstName FROM room_payment rp
-                                  inner join room_booking rm on rp.BookingId = rm.BookingId
-                                  inner join room_list rl on rl.RoomId = rm.RoomId
-                                  inner join room_type rt on rl.RoomTypeId = rt.RoomTypeId 
-                                  inner join users_details us on us.Userid = rm.User_id 
-                                  where rp.PaymentType = 'Net Banking'
-                                  order by rp.PaymentDate desc";
-                                  break;
-
-    case 6:  $selectPayments =   "SELECT rp.*,rm.*,rt.RoomType,rl.RoomNumber,us.FirstName FROM room_payment rp
-                                  inner join room_booking rm on rp.BookingId = rm.BookingId
-                                  inner join room_list rl on rl.RoomId = rm.RoomId
-                                  inner join room_type rt on rl.RoomTypeId = rt.RoomTypeId 
-                                  inner join users_details us on us.Userid = rm.User_id 
-                                  where rp.Amount < 50
-                                  order by rp.PaymentDate desc";
-                                  break;
-
-    case 7:  $selectPayments =  "SELECT rp.*,rm.*,rt.RoomType,rl.RoomNumber,us.FirstName FROM room_payment rp
-                                  inner join room_booking rm on rp.BookingId = rm.BookingId
-                                  inner join room_list rl on rl.RoomId = rm.RoomId
-                                  inner join room_type rt on rl.RoomTypeId = rt.RoomTypeId 
-                                  inner join users_details us on us.Userid = rm.User_id 
-                                  where rp.Amount  >= 50 AND rp.Amount <=100
-                                  order by rp.PaymentDate desc";
-                                  break;
-
-    case 8:  $selectPayments =  "SELECT rp.*,rm.*,rt.RoomType,rl.RoomNumber,us.FirstName FROM room_payment rp
-                                  inner join room_booking rm on rp.BookingId = rm.BookingId
-                                  inner join room_list rl on rl.RoomId = rm.RoomId
-                                  inner join room_type rt on rl.RoomTypeId = rt.RoomTypeId 
-                                  inner join users_details us on us.Userid = rm.User_id 
-                                  where rp.Amount  >= 100 AND rp.Amount <=150
-                                  order by rp.PaymentDate desc";
-                                  break;
-
-    case 9:  $selectPayments =  "SELECT rp.*,rm.*,rt.RoomType,rl.RoomNumber,us.FirstName FROM room_payment rp
-                                  inner join room_booking rm on rp.BookingId = rm.BookingId
-                                  inner join room_list rl on rl.RoomId = rm.RoomId
-                                  inner join room_type rt on rl.RoomTypeId = rt.RoomTypeId 
-                                  inner join users_details us on us.Userid = rm.User_id 
-                                  where rp.Amount  > 150 
-                                  order by rp.PaymentDate desc";
-                                  break;
-
-
-    default: $selectPayments =  "SELECT rp.*,rm.*,rt.RoomType,rl.RoomNumber,us.FirstName FROM room_payment rp
-                                inner join room_booking rm on rp.BookingId = rm.BookingId
-                                inner join room_list rl on rl.RoomId = rm.RoomId
-                                inner join room_type rt on rl.RoomTypeId = rt.RoomTypeId 
-                                inner join users_details us on us.Userid = rm.User_id 
-                                order by rp.PaymentDate desc";
-                                break;
-
- }
-
-   $payments = mysqli_query($con,$selectPayments);
-   $noOfPayment = mysqli_num_rows($payments);
-
-   if($noOfPayment>=1){
-       while($row=mysqli_fetch_assoc($payments))
-       {
-          
-         $paymentTable.=' <tr>
-                   
-                   <td>'.$row["FirstName"].'</td>
-                   <td>'.$row["PaymentDate"].'</td>
-                   <td>'.$row["PaymentType"].'</td>
-                   <td>'.$row["Amount"].'</td>
-                   <td>'.$row["RoomType"].'</td>
-                   <td>'.$row["RoomNumber"].'</td>
-                   <td>'.$row["CheckIn"].'</td>
-                   <td>'.$row["CheckOut"].'</td>
-               
-                   
-               ';
-
-                
-       }
-     }
-   else 
-   {
-   
-     $paymentTable.='<tr><td colspan="12" style="color:red;text-align:center;">No records are found </td></tr>';
-   
-   }
-
-    $paymentTable.='</tbody>
-                 </table></div>';
-    
-    echo $paymentTable;
-  }
-   
-  // -------------------------------------------------- Event Type Actions --------------------------------------------------
-  if(isset($_POST['eventTypeFilter'])){
-
-    $typeTable='<br><br>';
-
-    if(isset($_POST['msg'])){ 
-            $typeTable.='<div class="alert alert-success" role="alert">' . $_POST["msg"].' </div>';
-          }
-      if (isset($_POST["error"])) {
-        $typeTable.='<div class="alert alert-danger">' . $_POST["error"] . '</div>';
-      }
-       
-
-        $typeTable.='<div class="table-responsive">
-        <table class="table table-hover " id="userTable">
-<thead class="thead-dark">
-    <tr >
-      <th scope="col">Image</th>
-      <th scope="col">Type Name</th>
-      <th scope="col">Cost</th>
-      <th scope="col">Description</th>
-      <th scope="col">Status</th>
-      <th scope="col">Action</th>
-     
-      
-    </tr>
-  </thead>
-  <tbody>';
-    
-
-   
-    $roomTypeFilter = $_POST['eventTypeFilter'];
-
-
-   switch($roomTypeFilter){
-      case 1:  $selectAllType = "SELECT * FROM event_type "; break;
-      case 2:  $selectAllType = "SELECT * FROM event_type WHERE Status like 'active' ";break;
-      case 3:  $selectAllType = "SELECT * FROM event_type WHERE Status like 'in-active' ";break;
-      case 4:  $selectAllType = "SELECT * FROM event_type WHERE Cost < 500 ";break;
-      case 5:  $selectAllType = "SELECT * FROM event_type WHERE Cost >=500 AND Cost<=1000 ";break;
-      case 6:  $selectAllType = "SELECT * FROM event_type WHERE Cost >1000 ";break;
-      default: $selectAllType = "SELECT * FROM event_type "; break;
-      
-   }
-
-    $allType = mysqli_query($con,$selectAllType);
-    $noOfType = mysqli_num_rows($allType);
-
-    if($noOfType>=1){
-        while($row=mysqli_fetch_assoc($allType))
-        {
-           
-          $typeTable.=' <tr>
-                    <td><a href="../assets/picture/EventType/'.$row["EventImage"].'" > 
-                    <img class="round-img" src="../assets/picture/EventType/'.$row["EventImage"].'" alt="Profile"/>
-                    </a>
-                    </td>
-                    <td>'.$row["EventType"].'</td>
-                    <td>'.$row["Cost"].'</td>
-                    <td>'.$row["Description"].'</td>
-                    <td>'.$row["Status"].'</td>
-                   
-                    <td>';
-
-              $typeTable.="<button class='btn btn-secondary'  name='EditUser' onclick=\" editEventType('".$row["EventTypeId"]."') \"> Edit </button>";
-              $typeTable.="<button class='btn btn-danger' name='deleteUser' onclick=\"confirm('Are you want to delete  ".$row["EventTypeId"]."') && deleteEventType('".$row["EventTypeId"]."')\">Delete</button>
-                     
-                    </td>
-            </tr>";
-        }
-      }
-    else 
-    {
-    
-      $typeTable.='<tr><td colspan="8" style="color:red;text-align:center;">No records are found </td></tr>';
-    
-    }
-
-    $typeTable.='</tbody>
-    </table></div>';
-
-  echo $typeTable;
-
-   } 
-
-   
-   //---------------------------------------------- Event List table -----------------------------------------
-
-   if(isset($_POST['eventFilter'])){
-    $eventTable='<br><br>';
-    if(isset($_POST['msg'])){ 
-            $eventTable.='<div class="alert alert-success" role="alert">' . $_POST["msg"].' </div>';
-          }
-      if (isset($_POST["error"])) {
-        $eventTable.='<div class="alert alert-danger">' . $_POST["error"] . '</div>';
-      }
-       
-
-        $eventTable.='<div class="table-responsive">
-        <table class="table table-hover " id="userTable">
-<thead class="thead-dark">
-    <tr >
-      <th scope="col">Event Type</th>
-      <th scope="col">Cost</th>
-      <th scope="col">Hall Number</th>
-      <th scope="col">Status</th>
-      <th scope="col">Action</th>
-      
-    </tr>
-  </thead>
-  <tbody>';
-    
-
-   
-    $eventFilter = $_POST['eventFilter'];
-   if($eventFilter==""){
-    $selectAllEvents = "SELECT el.EventId,et.EventType,et.Cost,el.HallNumber,el.Status FROM event_list el
-                      inner join event_type et on  el.EventTypeId = et.EventTypeId";
-   }else{
-    $selectAllEvents = "SELECT el.EventId,et.EventType,et.Cost,el.HallNumber,el.Status FROM event_list el
-                      inner join event_type et on  el.EventTypeId = et.EventTypeId WHERE el.Status like '".$eventFilter."' ";
-    
-   }
-
-   
-    $allEvents = mysqli_query($con,$selectAllEvents);
-    $noOfEvents = mysqli_num_rows($allEvents);
-
-    if($noOfEvents>=1){
-        while($row=mysqli_fetch_assoc($allEvents))
-        {
-           
-          $eventTable.=' <tr>
-                    
-                    <td>'.$row["EventType"].'</td>
-                    <td>'.$row["Cost"].'</td>
-                    <td>'.$row["HallNumber"].'</td>
-                    <td>'.$row["Status"].'</td>
-                   
-                    <td>
-             ';
-              $eventTable.="<button class='btn btn-secondary'  name='EditUser' onclick=\" editEvent('".$row["EventId"]."') \"> Edit </button>";
-              $eventTable.="<button class='btn btn-danger' name='deleteUser' onclick=\"confirm('Are you want to delete the hall number  ".$row["EventId"]."') && deleteEvent('".$row["EventId"]."')\">Delete</button>
-                     
-                    </td>
-            </tr>";
-        }
-      }
-    else 
-    {
-    
-      $eventTable.='<tr><td colspan="8" style="color:red;text-align:center;">No records are found </td></tr>';
-    
-    }
-
-    $eventTable.='</tbody>
-    </table></div>';
-  echo $eventTable;
-   } 
-   
-
-   //---------------------------------------------- Event Booking table -----------------------------------------
-
-   if(isset($_POST['eventBooking'])){
-
-    $eventTable='<br><br>';
-    if(isset($_POST['msg'])){ 
-            $eventTable.='<div class="alert alert-success" role="alert">' . $_POST["msg"].' </div>';
-          }
-      if (isset($_POST["error"])) {
-        $eventTable.='<div class="alert alert-danger">' . $_POST["error"] . '</div>';
-      }
-       
-   
-        $eventTable.='<div class="table-responsive">
-        <table class="table table-hover " id="userTable">
-   <thead class="thead-dark">
-    <tr >
-      <th scope="col">User</th>
-      <th scope="col">Date</th>
-      <th scope="col">Event Type</th>
-      <th scope="col">Hall No</th>
-      <th scope="col">Event Date</th>
-      <th scope="col">Event Time</th>
-      <th scope="col">Amount</th>
-      <th scope="col">Status</th>
-      <th scope="col">Action</th>
-      <th scope="col">Details</th>
-      
-    </tr>
-   </thead>
-   <tbody>';
-    
-   $filter = $_POST['filter'];
-   
-   switch($filter){
-
-    case 1:  $selectBooking =  "SELECT em.*,et.EventType,el.HallNumber,us.FirstName FROM event_booking em 
-                                inner join event_list el on el.EventId = em.EventId
-                                inner join event_type et on el.EventTypeId = et.EventTypeId 
-                                inner join users_details us on us.Userid = em.User_id 
-                                order by em.Date desc"; 
-                                break;
-
-    case 2:  $selectBooking =  "SELECT em.*,et.EventType,el.HallNumber,us.FirstName FROM event_booking em 
-                                inner join event_list el on el.EventId = em.EventId
-                                inner join event_type et on el.EventTypeId = et.EventTypeId 
-                                inner join users_details us on us.Userid = em.User_id 
-                                where em.Status = 'Booked'
-                                order by em.Date desc";
-                                break;
-
-    case 3:  $selectBooking =  "SELECT em.*,et.EventType,el.HallNumber,us.FirstName FROM event_booking em 
-                                inner join event_list el on el.EventId = em.EventId
-                                inner join event_type et on el.EventTypeId = et.EventTypeId 
-                                inner join users_details us on us.Userid = em.User_id 
-                                where em.Status = 'Paid'
-                                order by em.Date desc";
-                                break;
-
-    case 4:  $selectBooking =  "SELECT em.*,et.EventType,el.HallNumber,us.FirstName FROM event_booking em 
-                                inner join event_list el on el.EventId = em.EventId
-                                inner join event_type et on el.EventTypeId = et.EventTypeId 
-                                inner join users_details us on us.Userid = em.User_id 
-                                where em.Status = 'Cancelled'
-                                order by em.Date desc";
-                                break;
-
-    case 5:  $selectBooking =  "SELECT em.*,et.EventType,el.HallNumber,us.FirstName FROM event_booking em 
-                                inner join event_list el on el.EventId = em.EventId
-                                inner join event_type et on el.EventTypeId = et.EventTypeId 
-                                inner join users_details us on us.Userid = em.User_id 
-                                where em.Status = 'Rejected'
-                                order by em.Date desc";
-                                break;
-
-   
-    case 6:  $selectBooking =  "SELECT em.*,et.EventType,el.HallNumber,us.FirstName FROM event_booking em 
-                                inner join event_list el on el.EventId = em.EventId
-                                inner join event_type et on el.EventTypeId = et.EventTypeId 
-                                inner join users_details us on us.Userid = em.User_id 
-                                where em.Status = 'Paid' And em.Event_date > CURDATE()
-                                order by em.Date desc";
-                                break;
-
-   
-    case 7:  $selectBooking =  "SELECT em.*,et.EventType,el.HallNumber,us.FirstName FROM event_booking em 
-                                inner join event_list el on el.EventId = em.EventId
-                                inner join event_type et on el.EventTypeId = et.EventTypeId 
-                                inner join users_details us on us.Userid = em.User_id 
-                                where em.Status = 'CheckedOut'
-                                order by em.Date desc";
-                                break;
-   
-    default: $selectBooking =  "SELECT em.*,et.EventType,el.HallNumber,us.FirstName FROM event_booking em 
-                                inner join event_list el on el.EventId = em.EventId
-                                inner join event_type et on el.EventTypeId = et.EventTypeId 
-                                inner join users_details us on us.Userid = em.User_id 
-                                order by em.Date desc"; break;
-                                
-   }
-   
-   $booking = mysqli_query($con,$selectBooking);
-   $noOfBooking = mysqli_num_rows($booking);
-   
-   if($noOfBooking>=1){
-       while($row=mysqli_fetch_assoc($booking))
-       {
-          
-         $eventTable.=' <tr>
-                   
-                   <td>'.$row["FirstName"].'</td>
-                   <td>'.$row["Date"].'</td>
-                   <td>'.$row["EventType"].'</td>
-                   <td>'.$row["HallNumber"].'</td>
-                   <td>'.$row["Event_date"].'</td>
-                   <td>'.$row["EventTime"].'</td>
-                   <td>'.$row["Amount"].'</td>
-                   <td>'.$row["Status"].'</td>
-                   
-               ';
-   
-                          if($row['Status']=="Booked"){
-                          $eventTable .=' <td>
-                          <a href="#" class="btn btn-primary btn-sm" onclick="setPaid(\''.$row["BookingId"].'\')">Pay</a>
-                          <a href="#" class="btn btn-danger btn-sm" onclick="confirm(\'Are you sure ? Do you want to Cancel this Booking \') && setReject(\''.$row["BookingId"].'\')">Cancel</a>
-                         
-                          </td>	 ';
-                          }
-                          else if ($row['Status']=="Paid"){
-                              $eventTable .='<td><form action="../include/pdf.php" method="POST" >
-                              <input type="hidden" value="'.$row['BookingId'].'"  name="eventBookingId" />
-                              <button type="submit" class="btn btn-primary btn-sm">Bill</button>
-                              </form>
-                              <button class="btn btn-secondary btn-sm" onclick="confirm(\'Are you sure ? Do you want to make available this event \') && setFree(\''.$row["BookingId"].'\')">Free</button>
-                            
-                              </td> 	 ';
-                          }
-                          else if ($row['Status']=="Cancelled"){
-                              $eventTable .='       <td>
-                              
-                              <span>Cancalled by Client</span>
-                              </td>	';
-                          } 
-                          else if ($row['Status']=="Rejected"){
-                              $eventTable .='         <td>
-                              
-                              <span>Cancalled by Admin</span>
-                              </td>	';
-                          }
-                          else{
-                              $eventTable .='<td><form action="../include/pdf.php" method="POST" >
-                              <input type="hidden" value="'.$row['BookingId'].'"  name="eventBookingId" />
-                              <button type="submit" class="btn btn-primary btn-sm">Bill</button>
-                            
-                              </td></form> 	 ';
-                          }
-                            
-                   $eventTable.='  <td><button class="btn btn-light btn-sm"  name="showDetails" onclick=" showDetails(\''.$row["BookingId"].'\') "> View </button></td> </tr>';
-       }
-     }
-   else 
-   {
-   
-     $eventTable.='<tr><td colspan="12" style="color:red;text-align:center;">No records are found </td></tr>';
-   
-   }
-   
-    $eventTable.='</tbody>
-                 </table></div>';
-    
-    echo $eventTable;
-   
-   } 
-
-   
-  //  -----------------------------------------  Event Payment ------------------------------------
-
-if(isset($_POST['eventPayment'])){
-   
-  $paymentTable='<br><br>';
-  if(isset($_POST['msg'])){ 
-          $paymentTable.='<div class="alert alert-success" role="alert">' . $_POST["msg"].' </div>';
-        }
-    if (isset($_POST["error"])) {
-      $paymentTable.='<div class="alert alert-danger">' . $_POST["error"] . '</div>';
-    }
-     
-
-      $paymentTable.='<div class="table-responsive">
-      <table class="table table-hover " id="userTable">
-<thead class="thead-dark">
-  <tr >
-    <th scope="col">User</th>
-    <th scope="col">Payment Date</th>
-    <th scope="col">Payment Type</th>
-    <th scope="col">Amount</th>
-    <th scope="col">Event Type</th>
-    <th scope="col">Hall No</th>
-    <th scope="col">Event Date </th>
-    <th scope="col">Event Time</th>
-    
-  </tr>
-</thead>
-<tbody>';
-  
-$filter = $_POST['filter'];
-
-switch($filter){
-
-  case 1:  $selectPayments =  "SELECT ep.*,em.*,et.EventType,el.HallNumber,us.FirstName FROM event_payment ep
-                              inner join event_booking em on ep.BookingId = em.BookingId
-                              inner join event_list el on el.EventId = em.EventId
-                              inner join event_type et on el.EventTypeId = et.EventTypeId 
-                              inner join users_details us on us.Userid = em.User_id 
-                              order by ep.PaymentDate desc";
-                              break;
-
-  case 2:  $selectPayments =  "SELECT ep.*,em.*,et.EventType,el.HallNumber,us.FirstName FROM event_payment ep
-                              inner join event_booking em on ep.BookingId = em.BookingId
-                              inner join event_list el on el.EventId = em.EventId
-                              inner join event_type et on el.EventTypeId = et.EventTypeId 
-                              inner join users_details us on us.Userid = em.User_id 
-                              where ep.PaymentType = 'Cash'
-                              order by ep.PaymentDate desc";
-                              break;
-
- case 3:  $selectPayments =  "SELECT ep.*,em.*,et.EventType,el.HallNumber,us.FirstName FROM event_payment ep
-                              inner join event_booking em on ep.BookingId = em.BookingId
-                              inner join event_list el on el.EventId = em.EventId
-                              inner join event_type et on el.EventTypeId = et.EventTypeId 
-                              inner join users_details us on us.Userid = em.User_id 
-                              where ep.PaymentType = 'Credit Card'
-                              order by ep.PaymentDate desc";
-                              break;
-
- case 4:  $selectPayments =  "SELECT ep.*,em.*,et.EventType,el.HallNumber,us.FirstName FROM event_payment ep
-                              inner join event_booking em on ep.BookingId = em.BookingId
-                              inner join event_list el on el.EventId = em.EventId
-                              inner join event_type et on el.EventTypeId = et.EventTypeId 
-                              inner join users_details us on us.Userid = em.User_id 
-                              where ep.PaymentType = 'Debit Card'
-                              order by ep.PaymentDate desc";
-                              break;
-
- case 5:  $selectPayments =  "SELECT ep.*,em.*,et.EventType,el.HallNumber,us.FirstName FROM event_payment ep
-                              inner join event_booking em on ep.BookingId = em.BookingId
-                              inner join event_list el on el.EventId = em.EventId
-                              inner join event_type et on el.EventTypeId = et.EventTypeId 
-                              inner join users_details us on us.Userid = em.User_id 
-                              where ep.PaymentType = 'Net Banking'
-                              order by ep.PaymentDate desc";
-                              break;
-
- case 6:  $selectPayments =  "SELECT ep.*,em.*,et.EventType,el.HallNumber,us.FirstName FROM event_payment ep
-                              inner join event_booking em on ep.BookingId = em.BookingId
-                              inner join event_list el on el.EventId = em.EventId
-                              inner join event_type et on el.EventTypeId = et.EventTypeId 
-                              inner join users_details us on us.Userid = em.User_id 
-                              where ep.Amount < 500
-                              order by ep.PaymentDate desc";
-                              break;
-
- case 7:  $selectPayments =  "SELECT ep.*,em.*,et.EventType,el.HallNumber,us.FirstName FROM event_payment ep
-                              inner join event_booking em on ep.BookingId = em.BookingId
-                              inner join event_list el on el.EventId = em.EventId
-                              inner join event_type et on el.EventTypeId = et.EventTypeId 
-                              inner join users_details us on us.Userid = em.User_id 
-                              where ep.Amount >= 50 AND ep.Amount <=1000
-                              order by ep.PaymentDate desc";
-                              break;
-
-
-
-case 8:  $selectPayments =  "SELECT ep.*,em.*,et.EventType,el.HallNumber,us.FirstName FROM event_payment ep
-                              inner join event_booking em on ep.BookingId = em.BookingId
-                              inner join event_list el on el.EventId = em.EventId
-                              inner join event_type et on el.EventTypeId = et.EventTypeId 
-                              inner join users_details us on us.Userid = em.User_id 
-                              where ep.Amount > 1000 
-                              order by ep.PaymentDate desc";
-                              break;
-
-  default: $selectPayments = "SELECT ep.*,em.*,et.EventType,el.HallNumber,us.FirstName FROM event_payment ep
-                              inner join event_booking em on em.BookingId = ep.BookingId
-                              inner join event_list el on el.EventId = em.EventId
-                              inner join event_type et on et.EventTypeId = el.EventTypeId 
-                              inner join users_details us on us.Userid = em.User_id 
-                              order by ep.PaymentDate desc";
-                              break;
-}
-
- $payments = mysqli_query($con,$selectPayments);
- $noOfPayment = mysqli_num_rows($payments);
-
- if($noOfPayment>=1){
-     while($row=mysqli_fetch_assoc($payments))
-     {
+include("../include/functions.php");
+// ------------------------------------ Room types Available ------------------------------------
+
+if(isset($_POST['roomType'])){
+    $roomTypeCard ='';
+    $typeFilter = $_POST['filter'];
+    switch($typeFilter){
+        case 1:  $selectAllType = "select rt.*,count(rl.RoomId) as count_rooms
+                                    from room_type rt inner join room_list rl on rt.RoomTypeId = rl.RoomTypeId 
+                                    where rl.Status='active' AND rt.Status='active'
+                                    group by rl.RoomTypeId "; break;
+
+        case 2:  $selectAllType ="select rt.*,count(rl.RoomId) as count_rooms
+                                    from room_type rt inner join room_list rl on rt.RoomTypeId = rl.RoomTypeId 
+                                    where rl.Status='active' AND rt.Status='active' AND rt.Cost<=50
+                                    group by rl.RoomTypeId "; break;
+
+        case 3:  $selectAllType ="select rt.*,count(rl.RoomId) as count_rooms
+                                    from room_type rt inner join room_list rl on rt.RoomTypeId = rl.RoomTypeId 
+                                    where rl.Status='active' AND rt.Status='active'  AND rt.Cost>=50 AND rt.Cost<=100 
+                                    group by rl.RoomTypeId "; break;
+
+        case 4:  $selectAllType = "select rt.*,count(rl.RoomId) as count_rooms
+                                    from room_type rt inner join room_list rl on rt.RoomTypeId = rl.RoomTypeId 
+                                    where rl.Status='active' AND rt.Status='active' AND rt.Cost>100
+                                    group by rl.RoomTypeId "; break;
+
+        default: $selectAllType = "select rt.*,count(rl.RoomId) as count_rooms
+                                    from room_type rt inner join room_list rl on rt.RoomTypeId = rl.RoomTypeId 
+                                    where rl.Status='active' AND rt.Status='active'
+                                    group by rl.RoomTypeId "; break;
         
-       $paymentTable.=' <tr>
-                 
-                 <td>'.$row["FirstName"].'</td>
-                 <td>'.$row["PaymentDate"].'</td>
-                 <td>'.$row["PaymentType"].'</td>
-                 <td>'.$row["Amount"].'</td>
-                 <td>'.$row["EventType"].'</td>
-                 <td>'.$row["HallNumber"].'</td>
-                 <td>'.$row["Event_date"].'</td>
-                 <td>'.$row["EventTime"].'</td>
-             
-                 
-             ';
-
-              
      }
-   }
- else 
- {
+     $allType = mysqli_query($con,$selectAllType);
+     $noOfType = mysqli_num_rows($allType);
  
-   $paymentTable.='<tr><td colspan="12" style="color:red;text-align:center;">No records are found </td></tr>';
- 
- }
+     if($noOfType>=1){
+         while($row=mysqli_fetch_assoc($allType))
+         {
+             $query_avail = "select count(RoomId) as avail_rooms from room_list where RoomTypeId = ' ".$row["RoomTypeId"]." ' AND Status = 'active' AND Booking_status = 'Available'";
+             $exec_avail = mysqli_query($con,$query_avail);
+             $countOfRooms=mysqli_fetch_assoc($exec_avail);
 
-  $paymentTable.='</tbody>
-               </table></div>';
-  
-  echo $paymentTable;
-}
- 
-// ------------------------------------------- Contact Details - ----------------------------
-
-if(isset($_POST['contactDetails'])){
-
-  $userTable='<br><br>';
-    if(isset($_POST['msg'])){ 
-            $userTable.='<div class="alert alert-success" role="alert">' . $_POST["msg"].' </div>';
-          }
-      if (isset($_POST["error"])) {
-        $userTable.='<div class="alert alert-danger">' . $_POST["error"] . '</div>';
-      }
-       
-
-        $userTable.='<div class="table-responsive">
-        <table class="table table-hover " id="userTable">
-<thead class="thead-dark">
-    <tr >
-   
-      <th scope="col">First name</th>
-      <th scope="col">Last name</th>
-      <th scope="col">Email</th>
-      <th scope="col">Feedback</th>
-      <th scope="col">Action</th>
+          
+             $roomTypeCard .= '
+             <div class="col-md-4 col-sm-6 ftco-animate fadeInUp ftco-animated">
+                 <div class="block-7">
+                     <form action="roomBooking.php" method="POST">
+                         <div class="room-images" onmouseover="changeImage(this)" onmouseout="restoreImage(this)">
+                             <img class="img" src="../assets/picture/RoomType/'.$row['RoomImage'].'" data-image="../assets/picture/RoomType/'.$row['RoomImage'].'" data-image1="../assets/picture/RoomType/'.$row['RoomImage1'].'" data-image2="../assets/picture/RoomType/'.$row['RoomImage2'].'" onclick="openModal(this)" />
+                         </div>
+                         <div class="text-center p-4">
+                             <span class="excerpt d-block">'.$row['RoomType'].'</span>
+                             <span class="price mb-2"><sup>USD</sup> <span class="number">'.$row['Cost'].'</span> <sub>/per night</sub></span>
+                             <ul class="pricing-text mb-2">';
+                                
+                                 $roomTypeCard .= '<li><span class="fa fa-check"></span> Facilities: '.$row['Description'].'</li>                      
+                             </ul>
+                             <input type="hidden" name="roomTypeId" value="'.$row['RoomTypeId'].'" />
+                             <button class="btn btn-primary d-block px-1 py-2" value="" name="bookRoom" type="submit">Book</button>
+                         </div>
+                     </form>
+                 </div>
+             </div>';
+             
+             
+         }
+       }
+     else 
+     {
+     
+       $roomTypeCard.='<br><br>
       
-    </tr>
-  </thead>
-  <tbody>';
-    
+            <p class="col-12 text-center text-danger" >No Room Types are Available...</p>'
+           ;
+     
+     }
 
-   
-    $contacts = "SELECT * FROM contact";
+     echo $roomTypeCard;
+}
+
+
+
+// ------------------------------------ My Room Booking -------------------------------------
+if(isset($_POST['roomBooking'])){
+
+  $roomBooking='<br><br>';
   
-   
-    $all = mysqli_query($con,$contacts);
-    $noOfUsers = mysqli_num_rows($all);
-
-    if($noOfUsers>=1){
-        while($row=mysqli_fetch_assoc($all))
-        {
-           
-          $userTable.=' <tr>
-                   
-                    <td>'.$row["FirstName"].'</td>
-                    <td>'.$row["LastName"].'</td>
-                    <td>'.$row["Email"].'</td>
-                    <td>'.$row["Message"].'</td>
-                    <td> ';
-           
-              $userTable.="<button class='btn btn-danger' name='deleteUser' onclick=\"confirm('Are you want to delete  ".$row["FirstName"]." Feedback') && deleteContact('".$row["ID"]."')\">Delete</button>
-                     
-                    </td>
-            </tr>";
-        }
-      }
-    else 
-    {
-    
-      $userTable.='<tr><td colspan="5" style="color:red;text-align:center;">No records are found </td></tr>';
-    
-    }
-
-    $userTable.='</tbody>
-    </table></div>';
-  echo $userTable;
+  if(isset($_POST['msg'])){ 
+    $roomBooking.='<div class="alert alert-success" role="alert">' . $_POST["msg"].' </div>';
   }
+  if (isset($_POST["error"])) {
+    $roomBooking.='<div class="alert alert-danger">' . $_POST["error"] . '</div>';
+  }
+  $roomBooking  .='<div class="row">';
+  
+  $filter = $_POST['filter'];
+  $userId = $_SESSION['loggedUserId'];
+  switch($filter){
+    case 1:  $selectBooking = "SELECT rm.*,rt.RoomType,rl.RoomNumber FROM
+                               room_booking rm inner join room_list rl on rl.RoomId = rm.RoomId
+                               inner join room_type rt on rl.RoomTypeId = rt.RoomTypeId 
+                               where rm.User_id = '$userId' order by rm.Date desc"; break;
+
+    case 2:  $selectBooking =  "SELECT rm.*,rt.RoomType,rl.RoomNumber FROM
+                                room_booking rm inner join room_list rl on rl.RoomId = rm.RoomId
+                                inner join room_type rt on rl.RoomTypeId = rt.RoomTypeId 
+                                where rm.User_id = '$userId' AND rm.Status= 'Booked'  order by rm.Date desc"; break;
+
+    case 3:  $selectBooking =  "SELECT rm.*,rt.RoomType,rl.RoomNumber FROM
+                                room_booking rm inner join room_list rl on rl.RoomId = rm.RoomId
+                                inner join room_type rt on rl.RoomTypeId = rt.RoomTypeId 
+                                where rm.User_id = '$userId' AND (rm.Status= 'Paid' OR rm.Status= 'CheckedOut' ) order by rm.Date desc "; break;
+
+    case 4:  $selectBooking =  "SELECT rm.*,rt.RoomType,rl.RoomNumber FROM
+                                room_booking rm inner join room_list rl on rl.RoomId = rm.RoomId
+                                inner join room_type rt on rl.RoomTypeId = rt.RoomTypeId 
+                                where rm.User_id = '$userId' AND rm.Status= 'Cancelled'  order by rm.Date desc"; break;
+
+    case 5:  $selectBooking =  "SELECT rm.*,rt.RoomType,rl.RoomNumber FROM
+                                room_booking rm inner join room_list rl on rl.RoomId = rm.RoomId
+                                inner join room_type rt on rl.RoomTypeId = rt.RoomTypeId 
+                                where rm.User_id = '$userId' AND rm.Status= 'Rejected'  order by rm.Date desc"; break;
+
+    case 6:  $selectBooking =  "SELECT rm.*,rt.RoomType,rl.RoomNumber FROM
+                                room_booking rm inner join room_list rl on rl.RoomId = rm.RoomId
+                                inner join room_type rt on rl.RoomTypeId = rt.RoomTypeId 
+                                where rm.User_id = '$userId' AND rm.Checkout < CURDATE()  order by rm.Date desc "; break;
+
+    default: $selectBooking =  "SELECT rm.*,rt.RoomType,rl.RoomNumber FROM room_booking rm inner join room_list rl on rl.RoomId = rm.RoomId
+                                inner join room_type rt on rl.RoomTypeId = rt.RoomTypeId 
+                                where rm.User_id = '$userId' order by rm.Date desc"; break;
+    
+ }
+ $all = mysqli_query($con,$selectBooking);
+
+ if(mysqli_num_rows($all)>=1){
+  while($row=mysqli_fetch_assoc($all))
+  {
+     
+      $roomBooking .='
+                    <div id="roomBooking" class="col-lg-4 col-md-6" >
+                        <div class="card card-margin">
+                            <div class="card-header no-border">
+                                <h5 class="card-title">'.$row['Status'].'</h5>
+                            </div>
+                            <div class="card-body pt-0">
+                                <div class="widget-49">
+                                    <div class="widget-49-title-wrapper">';
+                                    if($row['Status']=="Booked"){
+                                        $roomBooking .='   <div class="widget-49-date-primary"> ';
+                                    }
+                                    else if ($row['Status']=="Paid"){
+                                        $roomBooking .='   <div class="widget-49-date-success"> ';
+                                    }
+                                    else if ($row['Status']=="Cancelled"){
+                                        $roomBooking .='   <div class="widget-49-date-warning"> ';
+                                    } 
+                                    else if ($row['Status']=="Rejected"){
+                                        $roomBooking .='   <div class="widget-49-date-danger"> ';
+                                    } 
+                                    //checked Out
+                                    else{
+                                        $roomBooking .='   <div class="widget-49-date-success"> ';
+                                    }
+                                    $roomBooking .='  
+                                            <span class="widget-49-date-day">'.date('d',strtotime($row['Date'])).'</span>
+                                            <span class="widget-49-date-month">'.date('M',strtotime($row['Date'])).'</span>
+                                        </div>
+                                        <div class="widget-49-meeting-info">
+                                       <span class="font-weight-bold text-uppercase">'.$row['RoomType'].'</span> 
+                                            <span class="widget-49-meeting-time">Room No: '.$row['RoomNumber'].'</span>
+                                            <span class="widget-49-meeting-time">Date : '.$row['Date'].'</span>
+                                        </div>
+                                    </div>
+                                    <ul class="widget-49-meeting-points">
+                                        <li class="widget-49-meeting-item"><span class="font-weight-bold ">Check-In Date : '.$row['CheckIn'].'</span></li>
+                                        <li class="widget-49-meeting-item"><span class="font-weight-bold ">Check-Out Date : '.$row['CheckOut'].'</span></li>
+                                        
+                                        <li class="widget-49-meeting-item"><span class="font-weight-bold ">Total Cost : <i class="fa fa-usd" aria-hidden="true"></i>'.$row['Amount'].'</span></li>
+                                
+                                      
+                                        <li class="widget-49-meeting-item"><span>Email : '.$row['Email'].'</span></li>
+                                        <li class="widget-49-meeting-item"><span>Phone number : '.$row['Phone_number'].'</span></li>
+                                    
+                                
+                                    </ul>';
+                                    if($row['Status']=="Booked"){
+                                        $roomBooking .=' <div class="time">
+                                        
+                                        <a href="#" class="btn btn-danger btn-sm" onclick="confirm(\'Are you sure ? Do you want to Cancel this Booking \') && setCancel(\''.$row["BookingId"].'\')">Cancel</a>
+                                        <span class="pull-right">Modified Date : '.$row['Modified_date'].'</span>
+                                        </div>	 ';
+                                    }
+                                    else if ($row['Status']=="Paid"){
+                                        $roomBooking .='<form action="../include/pdf.php" method="POST" ><div class="time">
+                                        <input type="hidden" value="'.$row['BookingId'].'"  name="bookingId" />
+                                        <button type="submit" class="btn btn-primary btn-sm">Bill</button>
+                                        <span class="pull-right">Modified Date : '.$row['Modified_date'].'</span>
+                                        </div></form> 	 ';
+                                    }
+                                    else if ($row['Status']=="Cancelled"){
+                                        $roomBooking .='       <div class="time">
+                                       
+                                        <span class="pull-right">Modified Date : '.$row['Modified_date'].'</span>
+                                        </div>	';
+                                    } 
+                                    else if ($row['Status']=="Rejected"){
+                                        $roomBooking .='       <div class="time">
+                        
+                                        <span class="pull-right">Modified Date : '.$row['Modified_date'].'</span>
+                                        </div>	';
+                                    }
+                                    //checked Out
+                                    else{
+                                        $roomBooking .='<form action="../include/pdf.php" method="POST" ><div class="time">
+                                        <input type="hidden" value="'.$row['BookingId'].'"  name="bookingId" />
+                                        <button type="submit" class="btn btn-primary btn-sm">Bill</button>
+                                        <span class="pull-right">Modified Date : '.$row['Modified_date'].'</span>
+                                        </div></form> 	 ';
+                                    }
+                                    
+                 $roomBooking .=' </div>
+                            </div>
+                        </div>
+                    </div>';
+  }
+}
+else 
+{
+
+$roomBooking.='</div> <br><br>
+
+     <p class="col-12 text-center text-danger" >No Booked Rooms are available</p>'
+    ;
+
+}
+echo $roomBooking;
+
+}
+
+
+// --------------------------------- Events types Available -----------------------------------
+if(isset($_POST['eventType'])){
+    $TypeCard ='';
+    $typeFilter = $_POST['filter'];
+    
+    switch($typeFilter){
+        case 1:  $selectAllType = "select et.*,count(el.EventId) as count_events
+                                    from event_type et inner join event_list el on et.EventTypeId = el.EventTypeId 
+                                    where el.Status='active' AND et.Status='active'
+                                    group by el.EventTypeId "; break;
+        case 2:  $selectAllType = "select et.*,count(el.EventId) as count_events
+                                    from event_type et inner join event_list el on et.EventTypeId = el.EventTypeId 
+                                    where el.Status='active' AND et.Status='active' AND et.Cost <500
+                                    group by el.EventTypeId "; break;
+        case 3:  $selectAllType = "select et.*,count(el.EventId) as count_events
+                                    from event_type et inner join event_list el on et.EventTypeId = el.EventTypeId 
+                                    where el.Status='active' AND et.Status='active'  AND (et.Cost >= 500  AND et.Cost <= 1000)
+                                    group by el.EventTypeId "; break;
+        case 4:  $selectAllType = "select et.*,count(el.EventId) as count_events
+                                    from event_type et inner join event_list el on et.EventTypeId = el.EventTypeId 
+                                    where el.Status='active' AND et.Status='active' AND et.Cost > 1000  
+                                    group by el.EventTypeId "; break;
+
+        default: $selectAllType = "select et.*,count(el.EventId) as count_events
+                                    from event_type et inner join event_list el on et.EventTypeId = el.EventTypeId 
+                                    where el.Status='active' AND et.Status='active'
+                                    group by el.EventTypeId "; break;
+        
+     }
+     $allType = mysqli_query($con,$selectAllType);
+     $noOfType = mysqli_num_rows($allType);
+ 
+     if($noOfType>=1){
+         while($row=mysqli_fetch_assoc($allType))
+         {
+             $query_avail = "select count(EventId) as avail_events from event_list where EventTypeId = ' ".$row["EventTypeId"]." ' AND Status = 'active' AND Booking_status = 'Available'";
+             $exec_avail = mysqli_query($con,$query_avail);
+             $countOfRooms=mysqli_fetch_assoc($exec_avail);
+
+           $TypeCard.=
+           '<div class="col-md-4 col-sm-6 ftco-animate fadeInUp ftco-animated">
+            <div class="block-7">
+            <form action="eventBooking.php" method= "POST">
+               <img class="img" src="../assets/picture/EventType/'.$row['EventImage'].'" />
+               <div class="text-center p-4">
+                   <span class="excerpt d-block">'.$row['EventType'].'</span>
+                   <span class="price mb-2"><sup>USD</sup> <span class="number">'.$row['Cost'].'</span> <sub>/per hour</sub></span>
+                   <ul class="pricing-text mb-2">';
+                   
+                       
+                   $TypeCard.='<li><span class="fa fa-check" ></span> Facilities: '.$row['Description'].'</li>                      
+                  </ul>  ';   
+                    $TypeCard.='<input type="hidden" name="eventTypeId" value="'.$row['EventTypeId'].'" />';   
+
+                  
+                    $TypeCard.='<button class="btn btn-primary d-block px-1 py-2" value="" name="bookEvent" type="submit">Book</button>';
+                  
+       
+                   
+                  
+                   $TypeCard.=' </div>
+               </form>
+           </div>
+       </div> ';
+         }
+       }
+     else 
+     {
+     
+       $TypeCard.='<br><br>
+      
+            <p class="col-12 text-center text-danger" >No Event Types are Available...</p>'
+           ;
+     
+     }
+
+     echo $TypeCard;
+}
+
+// ------------------------------------ My Event Booking -------------------------------------
+if(isset($_POST['eventBooking'])){
+
+    $eventBooking='<br><br>';
+    
+    if(isset($_POST['msg'])){ 
+      $eventBooking.='<div class="alert alert-success" role="alert">' . $_POST["msg"].' </div>';
+    }
+    if (isset($_POST["error"])) {
+      $eventBooking.='<div class="alert alert-danger">' . $_POST["error"] . '</div>';
+    }
+    $eventBooking  .='<div class="row">';
+    
+    $filter = $_POST['filter'];
+    $userId = $_SESSION['loggedUserId'];
+    switch($filter){
+    case 1:  $selectBooking = "SELECT em.*,et.EventType,el.HallNumber FROM
+                                event_booking em inner join event_list el on el.EventId = em.EventId
+                                inner join event_type et on el.EventTypeId = et.EventTypeId 
+                                where em.User_id = '$userId' order by em.Date desc"; break;
+
+    case 2:  $selectBooking =  "SELECT em.*,et.EventType,el.HallNumber FROM
+                                event_booking em inner join event_list el on el.EventId = em.EventId
+                                inner join event_type et on el.EventTypeId = et.EventTypeId 
+                                where em.User_id = '$userId' AND em.Status = 'Booked' order by em.Date desc"; break;
+
+    case 3:  $selectBooking =  "SELECT em.*,et.EventType,el.HallNumber FROM
+                                event_booking em inner join event_list el on el.EventId = em.EventId
+                                inner join event_type et on el.EventTypeId = et.EventTypeId 
+                                where em.User_id = '$userId'
+                                AND (em.Status= 'Paid' OR em.Status= 'CheckedOut' )  order by em.Date desc"; break;
+
+    case 4:  $selectBooking =  "SELECT em.*,et.EventType,el.HallNumber FROM
+                                event_booking em inner join event_list el on el.EventId = em.EventId
+                                inner join event_type et on el.EventTypeId = et.EventTypeId 
+                                where em.User_id = '$userId' AND em.Status= 'Cancelled' order by em.Date desc"; break;
+
+    case 5:  $selectBooking =  "SELECT em.*,et.EventType,el.HallNumber FROM
+                                event_booking em inner join event_list el on el.EventId = em.EventId
+                                inner join event_type et on el.EventTypeId = et.EventTypeId 
+                                where em.User_id = '$userId' AND em.Status = 'Rejected' order by em.Date desc"; break;
+
+    case 6:  $selectBooking =  "SELECT em.*,et.EventType,el.HallNumber FROM
+                                event_booking em inner join event_list el on el.EventId = em.EventId
+                                inner join event_type et on el.EventTypeId = et.EventTypeId 
+                                where em.User_id = '$userId' AND em.Event_date < CURDATE() order by em.Date desc"; break;
+
+
+
+    default: $selectBooking =  "SELECT em.*,et.EventType,el.HallNumber FROM
+                                event_booking em inner join event_list el on el.EventId = em.EventId
+                                inner join event_type et on el.EventTypeId = et.EventTypeId 
+                                where em.User_id = '$userId' order by em.Date desc"; break;
+
+      
+   }
+   $all = mysqli_query($con,$selectBooking);
+  
+   if(mysqli_num_rows($all)>=1){
+    while($row=mysqli_fetch_assoc($all))
+    {
+       
+        $eventBooking .='
+                      <div id="eventBooking" class="col-lg-4 col-md-6" >
+                          <div class="card card-margin">
+                              <div class="card-header no-border">
+                                  <h5 class="card-title">'.$row['Status'].'</h5>
+                              </div>
+                              <div class="card-body pt-0">
+                                  <div class="widget-49">
+                                      <div class="widget-49-title-wrapper">';
+                                      if($row['Status']=="Booked"){
+                                          $eventBooking .='   <div class="widget-49-date-primary"> ';
+                                      }
+                                      else if ($row['Status']=="Paid"){
+                                          $eventBooking .='   <div class="widget-49-date-success"> ';
+                                      }
+                                      else if ($row['Status']=="Cancelled"){
+                                          $eventBooking .='   <div class="widget-49-date-warning"> ';
+                                      } 
+                                      else if ($row['Status']=="Rejected"){
+                                          $eventBooking .='   <div class="widget-49-date-danger"> ';
+                                      } 
+                                      //checked Out
+                                      else{
+                                          $eventBooking .='   <div class="widget-49-date-success"> ';
+                                      }
+                                      $eventBooking .='  
+                                              <span class="widget-49-date-day">'.date('d',strtotime($row['Date'])).'</span>
+                                              <span class="widget-49-date-month">'.date('M',strtotime($row['Date'])).'</span>
+                                          </div>
+                                          <div class="widget-49-meeting-info">
+                                         <span class="font-weight-bold text-uppercase">'.$row['EventType'].'</span> 
+                                              <span class="widget-49-meeting-time">Hall No: '.$row['HallNumber'].'</span>
+                                              <span class="widget-49-meeting-time">Booked Date : '.$row['Date'].'</span>
+                                          </div>
+                                      </div>
+                                      <ul class="widget-49-meeting-points">
+                                          <li class="widget-49-meeting-item"><span class="font-weight-bold ">Event Date : '.$row['Event_date'].'</span></li>
+                                          <li class="widget-49-meeting-item"><span class="font-weight-bold ">Event Time : '.$row['EventTime'].'</span></li>
+                                          <li class="widget-49-meeting-item"><span class="font-weight-bold ">Package Limit : '.$row['Package'].' hrs</span></li>
+                                          
+                                          <li class="widget-49-meeting-item"><span class="font-weight-bold ">Total Cost : <i class="fa fa-usd" aria-hidden="true"></i>'.$row['Amount'].'</span></li>
+                                  
+                                        
+                                          <li class="widget-49-meeting-item"><span>Email : '.$row['Email'].'</span></li>
+                                          <li class="widget-49-meeting-item"><span>Phone number : '.$row['Phone_number'].'</span></li>
+                                      
+                                  
+                                      </ul>';
+                                      if($row['Status']=="Booked"){
+                                          $eventBooking .=' <div class="time">
+                                         
+                                          <a href="#" class="btn btn-danger btn-sm" onclick="confirm(\'Are you sure ? Do you want to Cancel this Booking \') && setEventCancel(\''.$row["BookingId"].'\')">Cancel</a>
+                                          <span class="pull-right">Modified Date : '.$row['Modified_date'].'</span>
+                                          </div>	 ';
+                                      }
+                                      else if ($row['Status']=="Paid"){
+                                          $eventBooking .='<form action="../include/pdf.php" method="POST" ><div class="time">
+                                          <input type="hidden" value="'.$row['BookingId'].'"  name="eventBookingId" />
+                                          <button type="submit" class="btn btn-primary btn-sm">Bill</button>
+                                          <span class="pull-right">Modified Date : '.$row['Modified_date'].'</span>
+                                          </div></form> 	 ';
+                                      }
+                                      else if ($row['Status']=="Cancelled"){
+                                          $eventBooking .='       <div class="time">
+                                         
+                                          <span class="pull-right">Modified Date : '.$row['Modified_date'].'</span>
+                                          </div>	';
+                                      } 
+                                      else if ($row['Status']=="Rejected"){
+                                          $eventBooking .='       <div class="time">
+                          
+                                          <span class="pull-right">Modified Date : '.$row['Modified_date'].'</span>
+                                          </div>	';
+                                      }
+                                      //checked Out
+                                      else{
+                                          $eventBooking .='<form action="../include/pdf.php" method="POST" ><div class="time">
+                                          <input type="hidden" value="'.$row['BookingId'].'"  name="eventBookingId" />
+                                          <button type="submit" class="btn btn-primary btn-sm">Bill</button>
+                                          <span class="pull-right">Modified Date : '.$row['Modified_date'].'</span>
+                                          </div></form> 	 ';
+                                      }
+                                      
+                   $eventBooking .=' </div>
+                              </div>
+                          </div>
+                      </div>';
+    }
+  }
+  else 
+  {
+  
+  $eventBooking.='</div> <br><br>
+  
+       <p class="col-12 text-center text-danger" >No Booked Events are available</p>'
+      ;
+  
+  }
+  echo $eventBooking;
+  
+  }
+  
 
 ?>
+<script>
+    
+    function changeImage(element) {
+        element.querySelector('.img').src = element.querySelector('.img').getAttribute('data-image1');
+    }
+    function changeImage(element) {
+        element.querySelector('.img').src = element.querySelector('.img').getAttribute('data-image2');
+    }
+
+    function restoreImage(element) {
+        element.querySelector('.img').src = element.querySelector('.img').getAttribute('data-image');
+    }
+</script>
